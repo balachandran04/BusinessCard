@@ -50,8 +50,11 @@ st.set_page_config()
 st.title("Business Card Alaysis")
 with st.sidebar:
     select = option_menu("Menu",
-                         ['home'])
+                         ['home',"card Analysis"])
 if select == "home":
+  st.header("")
+
+elif select == "card Analysis":
       st.header("Welcome to Business Card Analysis")
       img = st.file_uploader("uploade the your buiness card")
       if img is not None:
@@ -89,7 +92,7 @@ if select == "home":
                         pincode varchar(100),
                         image text) """
           cursor.execute(table)
-          conn.commit
+          conn.commit()
 
           insert_qery = """
           INSERT INTO bizcard (name, work, company_name, contact, email, website, address, pincode, image)
@@ -99,7 +102,7 @@ if select == "home":
           cursor.execute(insert_qery,data)
           conn.commit()
           st.success("data Store successfully")
-      method = st.radio("select the Mode" ,["See","Modify"])
+      method = st.radio("select the Mode" ,["See","Modify","delect"])
       if method == "See":
         try:
               s = "select * from bizcard"
@@ -113,9 +116,106 @@ if select == "home":
               st.dataframe(table_df)
         except:
           st.write("insert the Photo")
-          
+
+      elif method == "Modify":
+        s = "select * from bizcard"
+        conn = sqlite3.connect("card.db")
+        cursor = conn.cursor()
+        cursor.execute(s)
+        table = cursor.fetchall()
+        conn.commit()
+
+        table_df= pd.DataFrame(table,columns=["name","Work","Company_name","contact","Email","website","address","pincode","image"])
+        
+
+        select_the_name = st.selectbox(f"select the name",table_df["name"])
+        df_3 = table_df[table_df["name"] == select_the_name]
+        st.dataframe(df_3)
+
+        df_4 = df_3.copy()
 
         
+
+        co1,co2 = st.columns(2)
+        with co1:
+          modify_name = st.text_input("Name",df_3["name"].unique()[0])
+          modify_work = st.text_input("work",df_3["Work"].unique()[0])
+          modify_company = st.text_input("company_name",df_3["Company_name"].unique()[0])
+          modify_contact = st.text_input("contact",df_3["contact"].unique()[0])
+          modify_email = st.text_input("Email",df_3["Email"].unique()[0])
+          modify_website = st.text_input("website",df_3["website"].unique()[0])
+          modify_address = st.text_input("address",df_3["address"].unique()[0])
+          modify_pincode = st.text_input("pincode",df_3["pincode"].unique()[0])
+
+          
+          df_4["name"]= modify_name
+          df_4["Work"]= modify_work
+          df_4["Company_name"]= modify_company
+          df_4["contact"]= modify_contact
+          df_4["Email"] = modify_email
+          df_4["website"]= modify_website
+          df_4["address"]= modify_address
+          df_4["pincode"]= modify_pincode
+        st.subheader(":blue[your Modify datas]")
+        st.dataframe(df_4)
+        co1,co2 = st.columns(2)
+        with co1:
+            button = st.button("Modify you data",use_container_width=True)
+            if button:
+              conn = sqlite3.connect("card.db")
+              cursor = conn.cursor()
+              query = f"delect from bizcard where name '{select_the_name}' "
+              conn.commit()
+
+              insert_qery = """
+          INSERT INTO bizcard (name, work, company_name, contact, email, website, address, pincode, image)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          """
+              data = df_4.values.tolist()[0]
+              cursor.execute(insert_qery,data)
+              conn.commit()
+              st.success("modify the data Store successfully")
+      elif method == "delect":
+          conn = sqlite3.connect("card.db")
+          cursor = conn.cursor()
+          query = "select name from bizcard "
+          cursor.execute(query)
+          result = cursor.fetchall()
+          conn.commit()
+
+          names = []
+          for i in result:
+            names.append(i[0])
+          name = st.selectbox("select the name ",names)
+          if name:
+            st.write("select the name ",name)
+            remove =  st.button("remove",use_container_width=True)
+            if remove:
+              cursor.execute(f"DELETE from bizcard where name = '{name}' ")
+              conn.commit()
+              st.success("delected")
+
+
+
+    
+
+              
+
+
+
+          
+          
+
+
+      
+
+
+        
+
+
+
+
+
 
 
 
